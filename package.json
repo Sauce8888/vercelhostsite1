@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "npm install --legacy-peer-deps && npx shadcn@latest init --yes && npx shadcn@latest add button card input label --yes && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
