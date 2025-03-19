@@ -1,7 +1,4 @@
-import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
-import Image from 'next/image';
-import { Calendar } from 'lucide-react';
 import BookingWidget from '@/components/BookingWidget';
 import PropertyGallery from '@/components/PropertyGallery';
 import AmenitiesList from '@/components/AmenitiesList';
@@ -15,8 +12,7 @@ export default async function PropertyPage() {
   // Get the property ID from environment variable
   const propertyId = process.env.NEXT_PUBLIC_PROPERTY_ID;
   
-  // Create a Supabase client for server components
-  const supabase = await createClient();
+  // Create Supabase admin client for server components
   const adminClient = createAdminClient();
   
   // Add options to bypass RLS for service_role access

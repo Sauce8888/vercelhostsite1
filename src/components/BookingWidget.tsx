@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DateRange } from 'react-day-picker';
 import { addDays, format, differenceInDays } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
@@ -12,6 +12,12 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
+
+interface AvailabilityItem {
+  date: string;
+  status: string;
+  price: string;
+}
 
 interface BookingWidgetProps {
   propertyId: string;
@@ -25,18 +31,10 @@ export default function BookingWidget({ propertyId, basePrice }: BookingWidgetPr
   });
   const [guests, setGuests] = useState({ adults: 2, children: 0 });
   const [loading, setLoading] = useState(false);
-  const [availability, setAvailability] = useState<Record<string, any>>({});
+  const [availability, setAvailability] = useState<Record<string, AvailabilityItem>>({});
   const [totalPrice, setTotalPrice] = useState(0);
 
-  // Fetch availability when dates change
-  useEffect(() => {
-    if (date?.from && date?.to) {
-      fetchAvailability();
-      calculatePrice();
-    }
-  }, [date, propertyId]);
-
-  const fetchAvailability = async () => {
+  const fetchAvailability = useCallback(async () => {
     if (!date?.from || !date?.to) return;
     
     try {
@@ -53,8 +51,8 @@ export default function BookingWidget({ propertyId, basePrice }: BookingWidgetPr
       if (error) throw error;
       
       // Convert to a map for easy lookup
-      const availabilityMap: Record<string, any> = {};
-      data.forEach((item: any) => {
+      const availabilityMap: Record<string, AvailabilityItem> = {};
+      data.forEach((item: AvailabilityItem) => {
         availabilityMap[item.date] = item;
       });
       
@@ -63,9 +61,9 @@ export default function BookingWidget({ propertyId, basePrice }: BookingWidgetPr
       console.error('Error fetching availability:', error);
       toast.error('Could not check availability');
     }
-  };
+  }, [date, propertyId]);
   
-  const calculatePrice = () => {
+  const calculatePrice = useCallback(() => {
     if (!date?.from || !date?.to) return;
     
     const nights = differenceInDays(date.to, date.from);
@@ -75,13 +73,21 @@ export default function BookingWidget({ propertyId, basePrice }: BookingWidgetPr
     let currentDate = new Date(date.from);
     for (let i = 0; i < nights; i++) {
       const dateStr = format(currentDate, 'yyyy-MM-dd');
-      const dayPrice = availability[dateStr]?.price || basePrice;
+      const dayPrice = availability[dateStr]?.price || basePrice.toString();
       total += parseFloat(dayPrice);
       currentDate = addDays(currentDate, 1);
     }
     
     setTotalPrice(total);
-  };
+  }, [date, availability, basePrice]);
+
+  // Fetch availability when dates change
+  useEffect(() => {
+    if (date?.from && date?.to) {
+      fetchAvailability();
+      calculatePrice();
+    }
+  }, [date, fetchAvailability, calculatePrice]);
   
   const handleBooking = async () => {
     if (!date?.from || !date?.to) {

@@ -72,8 +72,9 @@ export async function GET(request: Request) {
       dates: availabilityMap,
       base_price: parseFloat(property.base_price)
     });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error('Error checking availability:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 } 

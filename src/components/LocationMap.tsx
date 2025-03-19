@@ -17,8 +17,8 @@ export default function LocationMap({ location }: LocationMapProps) {
     
     // For this demo, we'll create a static Google Maps URL
     // In a real app, you would want to handle this server-side or use API keys properly
-    const encodedLocation = encodeURIComponent(location);
-    const staticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodedLocation}&zoom=13&size=600x300&maptype=roadmap&markers=color:red%7C${encodedLocation}&key=YOUR_API_KEY`;
+    // const encodedLocation = encodeURIComponent(location);
+    // const staticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodedLocation}&zoom=13&size=600x300&maptype=roadmap&markers=color:red%7C${encodedLocation}&key=YOUR_API_KEY`;
     
     // Set a placeholder URL for demo purposes
     setMapUrl('/map-placeholder.jpg');

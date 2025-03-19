@@ -21,8 +21,9 @@ export async function POST(request: Request) {
         signature,
         process.env.STRIPE_WEBHOOK_SECRET as string
       );
-    } catch (err: any) {
-      return NextResponse.json({ error: `Webhook signature verification failed: ${err.message}` }, { status: 400 });
+    } catch (err: Error | unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      return NextResponse.json({ error: `Webhook signature verification failed: ${errorMessage}` }, { status: 400 });
     }
     
     // Handle the event
@@ -34,10 +35,22 @@ export async function POST(request: Request) {
     }
     
     return NextResponse.json({ received: true });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error('Stripe webhook error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
+}
+
+interface BookingMetadata {
+  propertyId: string;
+  checkIn: string;
+  checkOut: string;
+  adults: string;
+  children: string;
+  guestName: string;
+  guestEmail: string;
+  totalPrice: string;
 }
 
 async function createBooking(session: Stripe.Checkout.Session) {
@@ -53,7 +66,7 @@ async function createBooking(session: Stripe.Checkout.Session) {
     guestName,
     guestEmail,
     totalPrice,
-  } = session.metadata as any;
+  } = (session.metadata as unknown) as BookingMetadata;
   
   // Create booking in the database
   const { data, error } = await supabase

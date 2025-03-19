@@ -24,8 +24,9 @@ export async function GET(request: Request) {
     }
     
     return NextResponse.json({ booking: data });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error('Error fetching booking details:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 } 

@@ -1,18 +1,27 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { differenceInDays, format } from 'date-fns';
-import { ArrowLeft, Calendar, User } from 'lucide-react';
+import { ArrowLeft, User } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabaseClient';
 
-export default function BookingPage() {
+interface Property {
+  id: string;
+  name: string;
+  base_price: string;
+  description?: string;
+  location?: string;
+  images?: string[];
+  amenities?: string[];
+}
+
+function BookingForm() {
   const searchParams = useSearchParams();
   const checkIn = searchParams.get('checkIn');
   const checkOut = searchParams.get('checkOut');
@@ -20,7 +29,7 @@ export default function BookingPage() {
   const children = searchParams.get('children');
   const propertyId = searchParams.get('propertyId');
 
-  const [property, setProperty] = useState<any>(null);
+  const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
@@ -45,33 +54,22 @@ export default function BookingPage() {
     const fetchPropertyAndPrice = async () => {
       try {
         // Fetch property details
-        const { data, error } = await supabase
-          .from('properties')
-          .select('*')
-          .eq('id', propertyId)
-          .single();
-
-        if (error) throw error;
+        const response = await fetch(`/api/property?id=${propertyId}`);
+        if (!response.ok) throw new Error('Failed to fetch property');
+        const data = await response.json();
         setProperty(data);
 
         // Calculate total price
         if (data && checkIn && checkOut) {
-          const { data: calendarData } = await supabase
-            .from('calendar')
-            .select('date, price')
-            .eq('property_id', propertyId)
-            .gte('date', checkIn)
-            .lt('date', checkOut);
-
-          // Create a map of dates to prices
-          const priceMap: Record<string, number> = {};
-          if (calendarData) {
-            calendarData.forEach(item => {
-              if (item.price) {
-                priceMap[item.date] = parseFloat(item.price);
-              }
-            });
-          }
+          // Fetch availability and pricing data
+          const availabilityResponse = await fetch(
+            `/api/availability?propertyId=${propertyId}&startDate=${checkIn}&endDate=${checkOut}`
+          );
+          
+          if (!availabilityResponse.ok) throw new Error('Failed to fetch availability');
+          
+          const availabilityData = await availabilityResponse.json();
+          const { dates } = availabilityData;
 
           // Calculate total price
           let total = 0;
@@ -80,8 +78,13 @@ export default function BookingPage() {
             const currentDate = new Date(startDate);
             currentDate.setDate(currentDate.getDate() + i);
             const dateStr = format(currentDate, 'yyyy-MM-dd');
-            const nightPrice = priceMap[dateStr] || parseFloat(data.base_price);
-            total += nightPrice;
+            const dayData = dates[dateStr];
+            
+            if (dayData) {
+              total += dayData.price;
+            } else {
+              total += parseFloat(data.base_price);
+            }
           }
 
           setTotalPrice(total);
@@ -142,9 +145,10 @@ export default function BookingPage() {
       } else {
         throw new Error('No checkout URL returned');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Booking error:', error);
-      toast.error(error.message || 'Failed to process booking');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process booking';
+      toast.error(errorMessage);
       setSubmitting(false);
     }
   };
@@ -164,7 +168,7 @@ export default function BookingPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12">
         <h1 className="text-2xl font-bold mb-4">Property Not Found</h1>
-        <p>The property you're trying to book could not be found.</p>
+        <p>The property you&apos;re trying to book could not be found.</p>
         <Button asChild className="mt-4">
           <Link href="/">Return to Property</Link>
         </Button>
@@ -249,7 +253,7 @@ export default function BookingPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-start space-x-3">
-                <Calendar className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                <User className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
                 <div>
                   <p className="font-medium">Dates</p>
                   <p className="text-sm text-muted-foreground">
@@ -276,7 +280,7 @@ export default function BookingPage() {
                   <span>${totalPrice.toFixed(2)}</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  You won't be charged yet
+                  You won&apos;t be charged yet
                 </p>
               </div>
             </CardContent>
@@ -284,5 +288,25 @@ export default function BookingPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Loading fallback for Suspense
+function LoadingFallback() {
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="animate-pulse space-y-4">
+        <div className="h-8 bg-muted rounded w-1/3"></div>
+        <div className="h-64 bg-muted rounded"></div>
+      </div>
+    </div>
+  );
+}
+
+export default function BookingPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <BookingForm />
+    </Suspense>
   );
 } 

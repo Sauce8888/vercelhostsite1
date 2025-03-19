@@ -124,8 +124,9 @@ export async function POST(request: Request) {
     
     // Return the session ID to redirect to Stripe Checkout
     return NextResponse.json({ sessionId: session.id, url: session.url });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error('Booking creation error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 } 
