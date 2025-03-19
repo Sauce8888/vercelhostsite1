@@ -1,14 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  swcMinify: true,
   images: {
-    domains: ['via.placeholder.com', 'images.unsplash.com'], // Added unsplash domain
+    domains: ['bzmktvwnwszlyhvfnujp.supabase.co'],
     formats: ['image/avif', 'image/webp'],
   },
   experimental: {
-    serverActions: {
-      allowedOrigins: ['localhost:3000']
-    },
+    serverActions: true,
   },
   async headers() {
     return [
