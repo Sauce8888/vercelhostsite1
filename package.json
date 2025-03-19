@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "npm install --legacy-peer-deps && next build",
+    "build": "npm install --legacy-peer-deps && npx shadcn@latest init --yes && npx shadcn@latest add button card input label --yes && next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -17,11 +17,13 @@
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.1",
+    "autoprefixer": "^10.4.17",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "lucide-react": "^0.483.0",
     "next": "15.2.3",
+    "postcss": "^8.4.35",
     "postcss-import": "^16.0.1",
     "react": "^19.0.0",
     "react-day-picker": "^8.10.1",
@@ -29,10 +31,8 @@
     "sonner": "^2.0.1",
     "stripe": "^17.7.0",
     "tailwind-merge": "^3.0.2",
-    "tailwindcss-animate": "^1.0.7",
     "tailwindcss": "^3.4.1",
-    "autoprefixer": "^10.4.17",
-    "postcss": "^8.4.35"
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

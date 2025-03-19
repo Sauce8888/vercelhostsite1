@@ -5,10 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { differenceInDays, format } from 'date-fns';
 import { ArrowLeft, User } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button, Input, Label, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui';
 import { toast } from 'sonner';
 
 interface Property {

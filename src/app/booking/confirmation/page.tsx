@@ -5,8 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { CheckCircle } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button, Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui';
 import { toast } from 'sonner';
 
 interface Booking {
